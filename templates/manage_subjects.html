@@ -1,0 +1,179 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Subjects - ResultSys{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-book"></i> Manage Subjects
+{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+<li class="breadcrumb-item active" aria-current="page">Subjects</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <!-- Add Subject Form -->
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle"></i> Add New Subject
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_subject') }}">
+                    <div class="mb-3">
+                        <label for="code" class="form-label">
+                            <i class="fas fa-code"></i> Subject Code
+                        </label>
+                        <input type="text" class="form-control" id="code" name="code" 
+                               placeholder="e.g., MATH101, CS101" required>
+                        <div class="form-text">Unique code for the subject</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">
+                            <i class="fas fa-book"></i> Subject Name
+                        </label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               placeholder="e.g., Mathematics, Computer Science" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="max_marks" class="form-label">
+                            <i class="fas fa-chart-line"></i> Maximum Marks
+                        </label>
+                        <input type="number" class="form-control" id="max_marks" name="max_marks" 
+                               value="100" min="1" max="200" required>
+                        <div class="form-text">Default is 100 marks per subject</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Subject
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Statistics -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Subjects Statistics</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Subjects
+                        <span class="badge bg-primary rounded-pill">{{ subjects|length }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Default Max Marks
+                        <span class="badge bg-success rounded-pill">100</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Subjects with Results
+                        <span class="badge bg-warning rounded-pill">
+                            {{ subjects|selectattr('results')|list|length }}
+                        </span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8 mb-4">
+        <!-- Subjects List -->
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> All Subjects
+                    </h5>
+                    <div>
+                        <span class="badge bg-primary">{{ subjects|length }} subjects</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if subjects %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Subject Name</th>
+                                <th>Max Marks</th>
+                                <th>Results Count</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for subject in subjects %}
+                            <tr>
+                                <td>
+                                    <span class="badge bg-primary">{{ subject.code }}</span>
+                                </td>
+                                <td>
+                                    <strong>{{ subject.name }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ subject.max_marks }}</span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if subject.results else 'secondary' }}">
+                                        {{ subject.results|length }} results
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if not subject.results %}
+                                    <a href="{{ url_for('delete_subject', subject_id=subject.id) }}" 
+                                       class="btn btn-outline-danger btn-sm"
+                                       onclick="return confirmDelete('Delete subject {{ subject.name }}?')">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </a>
+                                    {% else %}
+                                    <button class="btn btn-outline-secondary btn-sm" disabled 
+                                            title="Cannot delete - has results">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-book fa-4x text-muted mb-4"></i>
+                    <h3>No Subjects Found</h3>
+                    <p class="text-muted">No subjects have been added yet. Add your first subject using the form on the left.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Default Subjects Info -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0"><i class="fas fa-info-circle"></i> Information</h6>
+            </div>
+            <div class="card-body">
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-lightbulb"></i> Tips for Managing Subjects:</h6>
+                    <ul class="mb-0">
+                        <li>Subject codes must be unique</li>
+                        <li>Maximum marks can be set per subject (default is 100)</li>
+                        <li>Subjects with existing results cannot be deleted</li>
+                        <li>To delete a subject, first delete all associated results</li>
+                        <li>Common subjects are pre-loaded: Math, Physics, Chemistry, etc.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

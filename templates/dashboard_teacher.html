@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Teacher Dashboard - ResultSys{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-tachometer-alt"></i> Teacher Dashboard
+{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('manage_results') }}" class="btn btn-primary">
+    <i class="fas fa-plus-circle"></i> Add Result
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Statistics Cards -->
+    <div class="col-md-4 mb-4">
+        <div class="card bg-primary text-white shadow h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Total Students</h6>
+                        <h2 class="mb-0">{{ total_students }}</h2>
+                    </div>
+                    <i class="fas fa-users fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-primary-dark">
+                <a href="{{ url_for('search_results') }}" class="text-white text-decoration-none">
+                    Search Students <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card bg-success text-white shadow h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Results Added</h6>
+                        <h2 class="mb-0">{{ results_added }}</h2>
+                    </div>
+                    <i class="fas fa-chart-bar fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-success-dark">
+                <a href="{{ url_for('manage_results') }}" class="text-white text-decoration-none">
+                    View All <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4 mb-4">
+        <div class="card bg-info text-white shadow h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="card-title mb-0">Subjects</h6>
+                        <h2 class="mb-0">{{ subjects|length }}</h2>
+                    </div>
+                    <i class="fas fa-book fa-3x opacity-50"></i>
+                </div>
+            </div>
+            <div class="card-footer bg-info-dark">
+                <a href="#subjectList" class="text-white text-decoration-none">
+                    View Subjects <i class="fas fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Add Result Form -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i> Add Result
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_result') }}">
+                    <div class="mb-3">
+                        <label for="roll_no" class="form-label">Student Roll No</label>
+                        <input type="text" class="form-control" id="roll_no" name="roll_no" 
+                               placeholder="Enter roll number" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="subject_code" class="form-label">Subject</label>
+                        <select class="form-select" id="subject_code" name="subject_code" required>
+                            <option value="">Select Subject</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.code }}">
+                                {{ subject.code }} - {{ subject.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="marks_obtained" class="form-label">Marks Obtained</label>
+                        <input type="number" class="form-control" id="marks_obtained" name="marks_obtained" 
+                               min="0" max="100" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="term" class="form-label">Term</label>
+                        <input type="text" class="form-control" id="term" name="term" 
+                               placeholder="e.g., Mid-Term, Final" required>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Result
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Results -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-history me-2"></i> Recent Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Marks</th>
+                                <th>Term</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in recent_results %}
+                            <tr>
+                                <td>{{ result.exam_date.strftime('%d/%m/%y') }}</td>
+                                <td>
+                                    <strong>{{ result.student.roll_no }}</strong><br>
+                                    <small>{{ result.student.full_name }}</small>
+                                </td>
+                                <td>{{ result.subject.code }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.marks_obtained >= 40 else 'danger' }}">
+                                        {{ result.marks_obtained }}/{{ result.subject.max_marks }}
+                                    </span>
+                                </td>
+                                <td>{{ result.term or 'N/A' }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ url_for('search_results', roll_no=result.student.roll_no) }}" 
+                                           class="btn btn-outline-info btn-sm" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{{ url_for('delete_result', result_id=result.id) }}" 
+                                           class="btn btn-outline-danger btn-sm" title="Delete"
+                                           onclick="return confirmDelete('Delete this result?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="6" class="text-center py-4 text-muted">
+                                    <i class="fas fa-chart-line fa-2x mb-3"></i><br>
+                                    No results found. Add your first result!
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Subject List -->
+    <div class="col-12">
+        <div class="card shadow" id="subjectList">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">
+                    <i class="fas fa-book me-2"></i> Available Subjects
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    {% for subject in subjects %}
+                    <div class="col-md-3 mb-3">
+                        <div class="card border-primary h-100">
+                            <div class="card-body text-center">
+                                <i class="fas fa-book-open fa-3x text-primary mb-3"></i>
+                                <h5>{{ subject.code }}</h5>
+                                <p class="card-text">{{ subject.name }}</p>
+                                <p class="text-muted">Max Marks: {{ subject.max_marks }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            No subjects found. Contact administrator to add subjects.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

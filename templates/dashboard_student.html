@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - ResultSys{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-tachometer-alt"></i> Student Dashboard
+{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('download_result', roll_no=student.roll_no) }}" class="btn btn-success">
+    <i class="fas fa-download"></i> Download Result
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- Student Info Card -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-graduate"></i> Student Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="text-center mb-4">
+                    <div class="avatar-circle bg-primary text-white mb-3 mx-auto">
+                        <i class="fas fa-user fa-3x"></i>
+                    </div>
+                    <h4>{{ student.full_name }}</h4>
+                    <p class="text-muted">Roll No: {{ student.roll_no }}</p>
+                </div>
+                
+                <table class="table table-borderless">
+                    <tr>
+                        <th><i class="fas fa-calendar-alt"></i> Date of Birth</th>
+                        <td>{{ student.date_of_birth.strftime('%d/%m/%Y') }}</td>
+                    </tr>
+                    <tr>
+                        <th><i class="fas fa-school"></i> Class</th>
+                        <td>{{ student.class_name or 'Not Specified' }}</td>
+                    </tr>
+                    {% if student.email %}
+                    <tr>
+                        <th><i class="fas fa-envelope"></i> Email</th>
+                        <td>{{ student.email }}</td>
+                    </tr>
+                    {% endif %}
+                    {% if student.phone %}
+                    <tr>
+                        <th><i class="fas fa-phone"></i> Phone</th>
+                        <td>{{ student.phone }}</td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Overall Performance -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-line"></i> Overall Performance
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light h-100">
+                            <div class="card-body">
+                                <i class="fas fa-star fa-3x text-warning mb-3"></i>
+                                <h2>{{ percentage|round(2) }}%</h2>
+                                <p class="text-muted">Overall Percentage</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light h-100">
+                            <div class="card-body">
+                                <i class="fas fa-trophy fa-3x text-success mb-3"></i>
+                                <h2>{{ total_obtained }}</h2>
+                                <p class="text-muted">Total Marks Obtained</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4 mb-3">
+                        <div class="card bg-light h-100">
+                            <div class="card-body">
+                                <i class="fas fa-book fa-3x text-info mb-3"></i>
+                                <h2>{{ results|length }}</h2>
+                                <p class="text-muted">Subjects Taken</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Grade Indicator -->
+                <div class="mt-4">
+                    <h6>Performance Status</h6>
+                    <div class="progress" style="height: 30px;">
+                        {% set grade_color = 'bg-success' if percentage >= 75 else 'bg-info' if percentage >= 60 else 'bg-warning' if percentage >= 40 else 'bg-danger' %}
+                        <div class="progress-bar {{ grade_color }} progress-bar-striped" 
+                             role="progressbar" 
+                             style="width: {{ percentage if percentage <= 100 else 100 }}%">
+                            {% if percentage >= 90 %}
+                                Excellent (A+)
+                            {% elif percentage >= 80 %}
+                                Very Good (A)
+                            {% elif percentage >= 70 %}
+                                Good (B+)
+                            {% elif percentage >= 60 %}
+                                Above Average (B)
+                            {% elif percentage >= 50 %}
+                                Average (C)
+                            {% elif percentage >= 40 %}
+                                Pass (D)
+                            {% else %}
+                                Fail (F)
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between mt-2">
+                        <small>0%</small>
+                        <small>40% (Pass)</small>
+                        <small>60% (Good)</small>
+                        <small>80% (Excellent)</small>
+                        <small>100%</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Results by Term -->
+{% for term, term_results in terms.items() %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-{{ 'primary' if term == 'Final' else 'info' if term == 'Mid-Term' else 'secondary' }}">
+                <h5 class="mb-0 text-white">
+                    <i class="fas fa-file-alt"></i> {{ term }} Examination Results
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Subject Code</th>
+                                <th>Subject Name</th>
+                                <th>Max Marks</th>
+                                <th>Marks Obtained</th>
+                                <th>Percentage</th>
+                                <th>Grade</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in term_results %}
+                            {% set subject_percentage = (result.marks_obtained / result.subject.max_marks * 100) %}
+                            <tr>
+                                <td><strong>{{ result.subject.code }}</strong></td>
+                                <td>{{ result.subject.name }}</td>
+                                <td>{{ result.subject.max_marks }}</td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if result.marks_obtained >= 40 else 'danger' }}">
+                                        {{ result.marks_obtained }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        {% set subj_grade_color = 'bg-success' if subject_percentage >= 75 else 'bg-info' if subject_percentage >= 60 else 'bg-warning' if subject_percentage >= 40 else 'bg-danger' %}
+                                        <div class="progress-bar {{ subj_grade_color }}" 
+                                             role="progressbar" 
+                                             style="width: {{ subject_percentage if subject_percentage <= 100 else 100 }}%">
+                                            {{ "%.1f"|format(subject_percentage) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if subject_percentage >= 90 %}
+                                        A+
+                                    {% elif subject_percentage >= 80 %}
+                                        A
+                                    {% elif subject_percentage >= 70 %}
+                                        B+
+                                    {% elif subject_percentage >= 60 %}
+                                        B
+                                    {% elif subject_percentage >= 50 %}
+                                        C
+                                    {% elif subject_percentage >= 40 %}
+                                        D
+                                    {% else %}
+                                        F
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.marks_obtained >= 40 %}
+                                        <span class="badge bg-success">Pass</span>
+                                    {% else %}
+                                        <span class="badge bg-danger">Fail</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            
+                            <!-- Term Total -->
+                            {% set term_total_obtained = term_results|sum(attribute='marks_obtained') %}
+                            {% set term_total_max = term_results|sum(attribute='subject.max_marks') %}
+                            {% set term_percentage = (term_total_obtained / term_total_max * 100) if term_total_max > 0 else 0 %}
+                            <tr class="table-active">
+                                <td colspan="2"><strong>TERM TOTAL</strong></td>
+                                <td><strong>{{ term_total_max }}</strong></td>
+                                <td><strong>{{ term_total_obtained }}</strong></td>
+                                <td><strong>{{ "%.2f"|format(term_percentage) }}%</strong></td>
+                                <td colspan="2">
+                                    <span class="badge bg-{{ 'success' if term_percentage >= 40 else 'danger' }}">
+                                        {{ 'PASS' if term_percentage >= 40 else 'FAIL' }}
+                                    </span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% else %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+                <h3>No Results Found</h3>
+                <p class="text-muted">Your results have not been uploaded yet.</p>
+                <p>Please contact your teacher or administrator.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Important Notes -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0">
+                    <i class="fas fa-exclamation-circle"></i> Important Information
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-download"></i> Download Your Result</h6>
+                        <p>You can download your official result in PDF format using the button above.</p>
+                        <a href="{{ url_for('download_result', roll_no=student.roll_no) }}" 
+                           class="btn btn-outline-success">
+                            <i class="fas fa-file-pdf"></i> Download PDF Result
+                        </a>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-shield-alt"></i> Security Notice</h6>
+                        <ul>
+                            <li>Keep your roll number and date of birth confidential</li>
+                            <li>Do not share your login credentials</li>
+                            <li>Report any discrepancies to your teacher immediately</li>
+                            <li>Downloaded PDFs are official documents</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.avatar-circle {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+.progress-bar-striped {
+    background-image: linear-gradient(
+        45deg,
+        rgba(255, 255, 255, 0.15) 25%,
+        transparent 25%,
+        transparent 50%,
+        rgba(255, 255, 255, 0.15) 50%,
+        rgba(255, 255, 255, 0.15) 75%,
+        transparent 75%,
+        transparent
+    );
+    background-size: 1rem 1rem;
+}
+</style>
+{% endblock %}

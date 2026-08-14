@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Results - ResultSys{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-chart-bar"></i> Manage Results
+{% endblock %}
+
+{% block breadcrumbs %}
+{% if session.role == 'admin' %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+{% else %}
+<li class="breadcrumb-item"><a href="{{ url_for('teacher_dashboard') }}">Teacher</a></li>
+{% endif %}
+<li class="breadcrumb-item active" aria-current="page">Results</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <!-- Add/Edit Result Form -->
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-plus-circle"></i> Add/Edit Result
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_result') }}">
+                    <div class="mb-3">
+                        <label for="roll_no" class="form-label">Student Roll Number</label>
+                        <input type="text" class="form-control" id="roll_no" name="roll_no"
+                               placeholder="Enter roll number" required
+                               list="studentList">
+                        <datalist id="studentList">
+                            {% for student in students %}
+                            <option value="{{ student.roll_no }}">
+                            {% endfor %}
+                        </datalist>
+                        <div class="form-text">Enter existing student roll number</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="subject_code" class="form-label">Subject</label>
+                        <select class="form-select" id="subject_code" name="subject_code" required>
+                            <option value="">Select Subject</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.code }}" data-max="{{ subject.max_marks }}">
+                                {{ subject.code }} - {{ subject.name }} (Max: {{ subject.max_marks }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="marks_obtained" class="form-label">Marks Obtained</label>
+                        <input type="number" class="form-control" id="marks_obtained" name="marks_obtained"
+                               min="0" max="100" required>
+                        <div class="form-text">Enter marks between 0 and subject's maximum marks</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="term" class="form-label">Term/Examination</label>
+                        <input type="text" class="form-control" id="term" name="term"
+                               placeholder="e.g., Mid-Term, Final, Unit Test" required
+                               list="termList">
+                        <datalist id="termList">
+                            {% for term in terms %}
+                            <option value="{{ term }}">
+                            {% endfor %}
+                            <option value="Mid-Term">
+                            <option value="Final">
+                            <option value="Unit Test">
+                            <option value="Practical">
+                            <option value="Internal">
+                        </datalist>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Save Result
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h6 class="mb-0"><i class="fas fa-chart-pie"></i> Quick Stats</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Results
+                        <span class="badge bg-primary rounded-pill">{{ results|length }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Students
+                        <span class="badge bg-success rounded-pill">{{ students|length }}</span>
+                    </li>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        Total Subjects
+                        <span class="badge bg-warning rounded-pill">{{ subjects|length }}</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8 mb-4">
+        <!-- Results List -->
+        <div class="card shadow">
+            <div class="card-header bg-light">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i> All Results
+                    </h5>
+                    <div>
+                        <span class="badge bg-primary">{{ results|length }} results</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                {% if results %}
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Subject</th>
+                                <th>Marks</th>
+                                <th>Percentage</th>
+                                <th>Term</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in results %}
+                            {% set percentage = (result.marks_obtained / result.subject.max_marks * 100) %}
+                            <tr>
+                                <td>
+                                    <div>
+                                        <strong>{{ result.student.roll_no }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ result.student.full_name }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <strong>{{ result.subject.code }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ result.subject.name }}</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="me-3">
+                                            <span class="badge bg-{{ 'success' if result.marks_obtained >= 40 else 'danger' }}">
+                                                {{ result.marks_obtained }}
+                                            </span>
+                                            <small class="text-muted">/{{ result.subject.max_marks }}</small>
+                                        </div>
+                                        <div style="width: 60px;">
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-{{ 'success' if percentage >= 40 else 'danger' }}"
+                                                     style="width: {{ percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if percentage >= 40 else 'danger' }}">
+                                        {{ "%.1f"|format(percentage) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ result.term or 'N/A' }}</span>
+                                </td>
+                                <td>
+                                    <small>{{ result.exam_date.strftime('%d/%m/%y') }}</small>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <!-- Edit Form (Inline) -->
+                                        <button type="button" class="btn btn-outline-primary"
+                                                data-bs-toggle="modal" data-bs-target="#editModal{{ result.id }}"
+                                                title="Edit Marks">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+
+                                        <!-- Delete Button -->
+                                        <a href="{{ url_for('delete_result', result_id=result.id) }}"
+                                           class="btn btn-outline-danger" title="Delete"
+                                           onclick="return confirmDelete('Delete this result?')">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+
+                                        <!-- View Button -->
+                                        <a href="{{ url_for('search_results', roll_no=result.student.roll_no) }}"
+                                           class="btn btn-outline-info" title="View All Results">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <!-- Edit Modal -->
+                            <div class="modal fade" id="editModal{{ result.id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Edit Result</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ url_for('edit_result', result_id=result.id) }}">
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Student</label>
+                                                    <input type="text" class="form-control"
+                                                           value="{{ result.student.full_name }} ({{ result.student.roll_no }})" disabled>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Subject</label>
+                                                    <input type="text" class="form-control"
+                                                           value="{{ result.subject.name }} ({{ result.subject.code }})" disabled>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Term</label>
+                                                    <input type="text" class="form-control"
+                                                           value="{{ result.term or 'N/A' }}" disabled>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label for="marks{{ result.id }}" class="form-label">Marks Obtained</label>
+                                                    <input type="number" class="form-control" id="marks{{ result.id }}"
+                                                           name="marks_obtained" value="{{ result.marks_obtained }}"
+                                                           min="0" max="{{ result.subject.max_marks }}" required>
+                                                    <div class="form-text">
+                                                        Maximum marks: {{ result.subject.max_marks }}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-chart-line fa-4x text-muted mb-4"></i>
+                    <h3>No Results Found</h3>
+                    <p class="text-muted">No results have been added yet. Add your first result using the form on the left.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Bulk Operations -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-warning">
+                <h6 class="mb-0"><i class="fas fa-tasks"></i> Quick Actions</h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('search_results') }}" class="btn btn-outline-primary w-100">
+                            <i class="fas fa-search"></i> Search Results
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <a href="{{ url_for('manage_students') }}" class="btn btn-outline-success w-100">
+                            <i class="fas fa-users"></i> View Students
+                        </a>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <button class="btn btn-outline-info w-100" onclick="window.print()">
+                            <i class="fas fa-print"></i> Print List
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const subjectSelect = document.getElementById("subject_code");
+    const marksInput = document.getElementById("marks_obtained");
+
+    subjectSelect.addEventListener("change", function () {
+        const selected = this.options[this.selectedIndex];
+        const maxMarks = selected.getAttribute("data-max");
+
+        if (maxMarks) {
+            marksInput.max = maxMarks;
+            marksInput.placeholder = `0-${maxMarks}`;
+        }
+    });
+
+    document.getElementById('roll_no').focus();
+</script>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Setup - ResultSys{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-cog"></i> Admin Setup
+{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+<li class="breadcrumb-item active" aria-current="page">Setup</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- System Statistics -->
+    <div class="col-md-4 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-chart-bar"></i> System Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="list-group list-group-flush">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-shield text-primary me-2"></i>
+                            Admin Users
+                        </div>
+                        <span class="badge bg-primary rounded-pill">{{ admin_count }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-chalkboard-teacher text-info me-2"></i>
+                            Teacher Users
+                        </div>
+                        <span class="badge bg-info rounded-pill">{{ teacher_count }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-user-graduate text-success me-2"></i>
+                            Students
+                        </div>
+                        <span class="badge bg-success rounded-pill">{{ student_count }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <i class="fas fa-book text-warning me-2"></i>
+                            Subjects
+                        </div>
+                        <span class="badge bg-warning rounded-pill">{{ subject_count }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Links -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0"><i class="fas fa-link"></i> Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{{ url_for('manage_students') }}" class="btn btn-outline-primary text-start">
+                        <i class="fas fa-users me-2"></i> Manage Students
+                    </a>
+                    <a href="{{ url_for('manage_subjects') }}" class="btn btn-outline-success text-start">
+                        <i class="fas fa-book me-2"></i> Manage Subjects
+                    </a>
+                    <a href="{{ url_for('manage_results') }}" class="btn btn-outline-info text-start">
+                        <i class="fas fa-chart-bar me-2"></i> Manage Results
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add User Form -->
+    <div class="col-md-8 mb-4">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-user-plus"></i> Add New User</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('add_user') }}">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="username" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="username" name="username" 
+                                   placeholder="Enter username" required>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" name="password" 
+                                   placeholder="Enter password" required>
+                        </div>
+                        
+                        <div class="col-md-12 mb-3">
+                            <label for="role" class="form-label">Role</label>
+                            <select class="form-select" id="role" name="role" required>
+                                <option value="">Select Role</option>
+                                <option value="admin">Administrator</option>
+                                <option value="teacher">Teacher</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important:</strong>
+                        <ul class="mb-0 mt-2">
+                            <li>Username must be unique</li>
+                            <li>Choose a strong password</li>
+                            <li>Admins have full system access</li>
+                            <li>Teachers can only manage results</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-success">
+                            <i class="fas fa-save"></i> Create User
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- System Information -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-warning">
+                <h5 class="mb-0"><i class="fas fa-info-circle"></i> System Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-database"></i> Database</h6>
+                        <ul class="list-unstyled">
+                            <li><small class="text-muted">Type: SQLite</small></li>
+                            <li><small class="text-muted">Location: instance/database.db</small></li>
+                            <li><small class="text-muted">Tables: 4</small></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-server"></i> Server</h6>
+                        <ul class="list-unstyled">
+                            <li><small class="text-muted">Framework: Flask</small></li>
+                            <li><small class="text-muted">Version: 1.0.0</small></li>
+                            <li><small class="text-muted">Port: 5000</small></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <hr>
+                
+                <div class="alert alert-danger">
+                    <h6><i class="fas fa-shield-alt"></i> Security Recommendations</h6>
+                    <ul class="mb-0">
+                        <li>Change default admin password immediately</li>
+                        <li>Use strong passwords for all users</li>
+                        <li>Regularly backup the database</li>
+                        <li>Keep the system updated</li>
+                        <li>Limit admin access to trusted personnel only</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Default Credentials -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-danger text-white">
+                <h5 class="mb-0"><i class="fas fa-key"></i> Default Credentials</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Role</th>
+                                <th>Username</th>
+                                <th>Password</th>
+                                <th>Purpose</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><span class="badge bg-danger">Administrator</span></td>
+                                <td><code>admin</code></td>
+                                <td><code>admin123</code></td>
+                                <td>Full system access and management</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-info">Teacher</span></td>
+                                <td><code>teacher</code></td>
+                                <td><code>teacher123</code></td>
+                                <td>Result management only</td>
+                            </tr>
+                            <tr>
+                                <td><span class="badge bg-success">Student</span></td>
+                                <td><code>Roll Number</code></td>
+                                <td><code>Date of Birth (YYYY-MM-DD)</code></td>
+                                <td>View and download own results</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <strong>Warning:</strong> Change default passwords immediately after first login!
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

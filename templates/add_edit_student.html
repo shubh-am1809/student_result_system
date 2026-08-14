@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if student else 'Add' }} Student - ResultSys{% endblock %}
+
+{% block page_title %}
+<i class="fas fa-user-{{ 'edit' if student else 'plus' }}"></i>
+{{ 'Edit' if student else 'Add New' }} Student
+{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('admin_dashboard') }}">Admin</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('manage_students') }}">Students</a></li>
+<li class="breadcrumb-item active" aria-current="page">{{ 'Edit' if student else 'Add' }}</li>
+{% endblock %}
+
+{% block page_actions %}
+<a href="{{ url_for('manage_students') }}" class="btn btn-secondary">
+    <i class="fas fa-arrow-left"></i> Back to List
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-{{ 'warning' if student else 'primary' }} text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-user-{{ 'edit' if student else 'plus' }}"></i>
+                    {{ 'Edit Student Information' if student else 'Add New Student' }}
+                </h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('edit_student', student_id=student.id) if student else url_for('add_student') }}">
+                    <div class="row">
+                        <!-- Roll Number (disabled for edit) -->
+                        <div class="col-md-6 mb-3">
+                            <label for="roll_no" class="form-label">
+                                <i class="fas fa-id-card"></i> Roll Number
+                                <span class="text-danger">*</span>
+                            </label>
+                            {% if student %}
+                            <input type="text" class="form-control" value="{{ student.roll_no }}" disabled>
+                            <div class="form-text">Roll number cannot be changed</div>
+                            {% else %}
+                            <input type="text" class="form-control" id="roll_no" name="roll_no"
+                                   value="{{ roll_no or '' }}"
+                                   placeholder="Enter roll number (e.g., S001, 2023001)"
+                                   required>
+                            <div class="form-text">Roll number must be unique</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Full Name -->
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="form-label">
+                                <i class="fas fa-user"></i> Full Name
+                                <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="full_name" name="full_name"
+                                   value="{{ student.full_name if student else full_name or '' }}"
+                                   placeholder="Enter full name" required>
+                        </div>
+
+                        <!-- Date of Birth -->
+                        <div class="col-md-6 mb-3">
+                            <label for="dob" class="form-label">
+                                <i class="fas fa-calendar-alt"></i> Date of Birth
+                                <span class="text-danger">*</span>
+                            </label>
+
+                            <!-- ✅ FIX: removed now() -->
+                            <input type="date" class="form-control" id="dob" name="dob"
+                                   value="{{ student.date_of_birth.strftime('%Y-%m-%d') if student else dob or '' }}"
+                                   required>
+
+                            <div class="form-text">Format: YYYY-MM-DD</div>
+                        </div>
+
+                        <!-- Class -->
+                        <div class="col-md-6 mb-3">
+                            <label for="class_name" class="form-label">
+                                <i class="fas fa-school"></i> Class/Standard
+                            </label>
+                            <input type="text" class="form-control" id="class_name" name="class_name"
+                                   value="{{ student.class_name if student else class_name or '' }}"
+                                   placeholder="e.g., 10th Grade, CS-101">
+                        </div>
+
+                        <!-- Email -->
+                        <div class="col-md-6 mb-3">
+                            <label for="email" class="form-label">
+                                <i class="fas fa-envelope"></i> Email Address
+                            </label>
+                            <input type="email" class="form-control" id="email" name="email"
+                                   value="{{ student.email if student else email or '' }}"
+                                   placeholder="student@example.com">
+                        </div>
+
+                        <!-- Phone -->
+                        <div class="col-md-6 mb-3">
+                            <label for="phone" class="form-label">
+                                <i class="fas fa-phone"></i> Phone Number
+                            </label>
+                            <input type="tel" class="form-control" id="phone" name="phone"
+                                   value="{{ student.phone if student else phone or '' }}"
+                                   placeholder="+91 9876543210">
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-12 mb-3">
+                            <label for="address" class="form-label">
+                                <i class="fas fa-map-marker-alt"></i> Address (Optional)
+                            </label>
+                            <textarea class="form-control" id="address" name="address"
+                                      rows="3" placeholder="Enter address">{{ student.address if student else address or '' }}</textarea>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    <div class="row">
+                        <div class="col-12">
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle"></i>
+                                <strong>Important Notes:</strong>
+                                <ul class="mb-0 mt-2">
+                                    <li>Fields marked with <span class="text-danger">*</span> are required</li>
+                                    <li>Roll number is used for student login</li>
+                                    <li>Date of birth is used as password for student login</li>
+                                    <li>Email and phone are optional but recommended</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                        <a href="{{ url_for('manage_students') }}" class="btn btn-secondary me-md-2">
+                            <i class="fas fa-times"></i> Cancel
+                        </a>
+                        <button type="submit" class="btn btn-{{ 'warning' if student else 'primary' }}">
+                            <i class="fas fa-save"></i> {{ 'Update' if student else 'Save' }} Student
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if student %}
+        <!-- Student Results Summary -->
+        <div class="card shadow mt-4">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-chart-bar"></i> Student Results Summary
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if student.results %}
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Term</th>
+                                <th>Marks</th>
+                                <th>Percentage</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for result in student.results %}
+                            {% set percentage = (result.marks_obtained / result.subject.max_marks * 100) %}
+                            <tr>
+                                <td>{{ result.subject.code }}</td>
+                                <td>{{ result.term or 'N/A' }}</td>
+                                <td>{{ result.marks_obtained }}/{{ result.subject.max_marks }}</td>
+                                <td>{{ "%.1f"|format(percentage) }}%</td>
+                                <td>
+                                    {% if result.marks_obtained >= 40 %}
+                                    <span class="badge bg-success">Pass</span>
+                                    {% else %}
+                                    <span class="badge bg-danger">Fail</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-3">
+                    <i class="fas fa-chart-line fa-2x text-muted mb-3"></i>
+                    <p class="text-muted mb-0">No results found for this student.</p>
+                </div>
+                {% endif %}
+            </div>
+            <div class="card-footer">
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('search_results', roll_no=student.roll_no) }}" class="btn btn-outline-info btn-sm">
+                        <i class="fas fa-eye"></i> View All Results
+                    </a>
+                    <a href="{{ url_for('download_result', roll_no=student.roll_no) }}" class="btn btn-outline-success btn-sm">
+                        <i class="fas fa-download"></i> Download Result PDF
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set max date for DOB to today
+    document.getElementById('dob').max = new Date().toISOString().split("T")[0];
+
+    // Auto-capitalize roll number
+    const rollNoInput = document.getElementById('roll_no');
+    if (rollNoInput) {
+        rollNoInput.addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    }
+
+    // Focus on first input
+    const firstInput = document.querySelector('input[required]');
+    if (firstInput) {
+        firstInput.focus();
+    }
+</script>
+{% endblock %}
